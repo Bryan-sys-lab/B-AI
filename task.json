@@ -1,0 +1,124 @@
+{
+  "role": "system",
+  "task": "Generate frontend + theme orchestration logic for an Aetherium-powered, agentic e-commerce aggregator with regional auto-detected seasonal theming.",
+  "context": {
+    "description": "Enhance the existing frontend design system to support regional targeting of seasonal/event themes. Themes should auto-activate per-country based on calendar/holiday APIs and user location/account region. Vendor branding and light/dark remain layered on top. Admins must be able to override or schedule themes. The solution must provide a ThemeProvider, scheduler sync, caching, and example UI components demonstrating regional themes in action.",
+    "requirements": {
+      "frontend_stack": "Next.js 14 (App Router) + TypeScript + TailwindCSS + ShadCN UI",
+      "state_management": "React Query + Zustand",
+      "real_time": "WebSockets/SSE for live offers and chat streaming",
+      "theme_detection": "Auto-detect region via user profile, browser locale, or GPS pin; fallback to country inferred from IP (with consent).",
+      "holiday_apis": "Support multiple sources (Nager.Date, Google Calendar, local government holiday feeds, lunar calendar API for Ramadan/Eid).",
+      "admin_controls": "Admin UI to view scheduled themes, force-activate/deactivate, override, and set regional schedules.",
+      "performance": "Daily sync with caching (server-side cron or edge function) and CDN-cacheable theme assets. Theme changes must not require full deploy."
+    }
+  },
+  "deliverables": [
+    {
+      "type": "design_system_update",
+      "description": "Extend design system to include regional theme definitions and precedence rules.",
+      "guide": {
+        "regional_themes": {
+          "KE": {
+            "name": "Kenya",
+            "examples": ["jamhuri_day", "madaraka_day", "ramadan", "christmas"],
+            "default_locale": "en-KE",
+            "usage": "Auto-applied to users in Kenya; admin override available."
+          },
+          "TZ": {
+            "name": "Tanzania",
+            "examples": ["union_day", "nane_nane", "ramadan", "christmas"],
+            "default_locale": "en-TZ",
+            "usage": "Auto-applied to users in Tanzania; supports Swahili keyline text."
+          },
+          "UG": {
+            "name": "Uganda",
+            "examples": ["independence_day", "ekkamati_festival", "christmas"],
+            "default_locale": "en-UG",
+            "usage": "Regional holiday overrides and vendor locale accents."
+          },
+          "ET": {
+            "name": "Ethiopia",
+            "examples": ["timkat", "meskel", "christmas", "genna"],
+            "default_locale": "am-ET",
+            "usage": "Supports Ethiopian calendar mappings and Amharic text."
+          }
+        },
+        "precedence_rules": [
+          "1. Admin manual override (highest precedence).",
+          "2. Active regional seasonal theme (country-level holiday match).",
+          "3. Active global seasonal theme (e.g., Black Friday).",
+          "4. User preference (explicit user-selected theme: seasonal opt-in or manual).",
+          "5. Default light/dark + vendor branding (fallback)."
+        ],
+        "accessibility": "All regional themes must meet WCAG AA for color contrast; automated checks run at theme activation."
+      }
+    },
+    {
+      "type": "theme_provider",
+      "description": "A Next.js ThemeProvider that handles detection, scheduling, caching, and exposure to components.",
+      "requirements": {
+        "features": [
+          "detect_user_region(): checks user profile -> GPS pin -> browser locale -> IP geolocation (consent required).",
+          "fetch_scheduled_themes(region): calls holiday APIs + local feeds + lunar API; merges results.",
+          "cache_layer": "server-side daily sync stored in Redis or edge cache; client reads via API with short TTL and fallback.",
+          "admin_override_api": "endpoint to force-activate/deactivate a theme per-region or globally.",
+          "conflict_resolution": "apply precedence rules and emit events when theme changes.",
+          "layering": "compose theme layers: global_base -> seasonal_theme -> vendor_branding -> user_override."
+        ],
+        "api_endpoints_example": [
+          "GET /api/themes/active?region=KE&date=2025-11-27",
+          "POST /api/themes/override { region: 'KE', theme: 'black_friday', active: true, expires_at: '2025-11-30T23:59:59Z' }",
+          "GET /api/themes/available?region=TZ"
+        ]
+      }
+    },
+    {
+      "type": "scheduler_sync",
+      "description": "Server-side sync job that queries multiple holiday/calendar APIs daily and populates a theme schedule store.",
+      "requirements": {
+        "sources": ["Nager.Date (public holidays)", "Lunar calendar API (Ramadan/Eid)", "Custom admin schedule", "Local government feeds"],
+        "frequency": "Daily at 00:05 local server time, with immediate re-sync on admin manual change.",
+        "data_model": {
+          "theme_schedule": {
+            "region": "string",
+            "theme_id": "string",
+            "start_date": "date-time",
+            "end_date": "date-time",
+            "source": "string",
+            "confidence_score": "number"
+          }
+        },
+        "failure_policy": "Retry with exponential backoff; fall back to previously cached schedule if current fetch fails."
+      }
+    },
+    {
+      "type": "admin_ui",
+      "description": "Admin dashboard components to view, approve, override, and schedule regional themes.",
+      "components": [
+        "ThemeCalendarView (calendar with scheduled themes per region)",
+        "ThemeOverridePanel (force-activate/deactivate and set expiration)",
+        "ThemeAuditLog (who activated, source, and timestamps)",
+        "AccessibilityChecker (run contrast checks before activation)"
+      ]
+    },
+    {
+      "type": "sample_code",
+      "description": "Provide TypeScript/React code examples.",
+      "snippets": [
+        "ThemeProvider + useTheme hook: detection flow, layer composition, subscription to realtime overrides (WebSocket or SSE).",
+        "OffersTicker: styles adapt to current theme + regional icons (e.g., flag or crescent) and vendor-brand accent overlay.",
+        "PromotionBanner: demonstrates vendor accent color plus seasonal overlay and admin-forced banner when override active."
+      ]
+    }
+  ],
+  "output_instructions": {
+    "structure": "Return a single JSON object with keys: design_system_update, theme_provider_spec, scheduler_sync_spec, admin_ui_spec, sample_code_snippets.",
+    "constraints": [
+      "Do not include narrative explanations outside the JSON object.",
+      "Ensure all API examples and code snippets are valid TypeScript/Next.js patterns.",
+      "Respect user privacy: IP geolocation only when user consents; always prefer profile/GPS pin for region detection.",
+      "Make theme activation idempotent and auditable (store audit logs for admin actions)."
+    ]
+  }
+}

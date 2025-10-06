@@ -1,0 +1,1 @@
+# Knowledge Agent - Manages memory and relationships across the system

@@ -1,0 +1,767 @@
+{
+  "description": "Implement a complete FastAPI server based on this OpenAPI 3.0.3 specification for an EA Meta-Ecommerce API. The API should include all endpoints, models, and functionality described in the spec. Include proper error handling, validation, and database integration. Use PostgreSQL with SQLAlchemy for data persistence.",
+  "context": {
+    "openapi_spec": {
+      "openapi": "3.0.3",
+      "info": {
+        "title": "EA Meta-Ecommerce API",
+        "version": "1.0.0",
+        "description": "Core APIs for Product, Vendor, Offer, Order services for an Aetherium-powered, agentic e-commerce aggregator."
+      },
+      "servers": [
+        {
+          "url": "https://api.example.com/v1"
+        }
+      ],
+      "paths": {
+        "/products": {
+          "get": {
+            "summary": "Search products",
+            "parameters": [
+              {
+                "in": "query",
+                "name": "q",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              {
+                "in": "query",
+                "name": "category_id",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              {
+                "in": "query",
+                "name": "lat",
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              },
+              {
+                "in": "query",
+                "name": "lng",
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              },
+              {
+                "in": "query",
+                "name": "limit",
+                "schema": {
+                  "type": "integer"
+                },
+                "default": 20
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "product list with vendor & offer summary",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ProductSearchResponse"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "post": {
+            "summary": "Add product (vendor-auth)",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ProductCreate"
+                  }
+                }
+              }
+            },
+            "responses": {
+              "201": {
+                "description": "created",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Product"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/products/{id}": {
+          "get": {
+            "summary": "Get product detail (including vendor, offers)",
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "schema": {
+                  "type": "string"
+                },
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "product object",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/ProductDetail"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/vendors": {
+          "post": {
+            "summary": "Create vendor (onboarding)",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/VendorCreate"
+                  }
+                }
+              }
+            },
+            "responses": {
+              "201": {
+                "description": "vendor created",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Vendor"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "get": {
+            "summary": "Search vendors",
+            "parameters": [
+              {
+                "in": "query",
+                "name": "q",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              {
+                "in": "query",
+                "name": "lat",
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              },
+              {
+                "in": "query",
+                "name": "lng",
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "list of vendors",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Vendor"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/vendors/{id}": {
+          "get": {
+            "summary": "Get vendor details (including branches, rating)",
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "schema": {
+                  "type": "string"
+                },
+                "required": true
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "vendor",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/VendorDetail"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/offers": {
+          "get": {
+            "summary": "Query active offers (supports geo & category filter)",
+            "parameters": [
+              {
+                "in": "query",
+                "name": "lat",
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              },
+              {
+                "in": "query",
+                "name": "lng",
+                "schema": {
+                  "type": "number",
+                  "format": "double"
+                }
+              },
+              {
+                "in": "query",
+                "name": "category_id",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              {
+                "in": "query",
+                "name": "vendor_id",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            ],
+            "responses": {
+              "200": {
+                "description": "list of offers",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Offer"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "post": {
+            "summary": "Create promotion/offer (vendor-auth)",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/OfferCreate"
+                  }
+                }
+              }
+            },
+            "responses": {
+              "201": {
+                "description": "created",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Offer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/orders": {
+          "post": {
+            "summary": "Create order",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/OrderCreate"
+                  }
+                }
+              }
+            },
+            "responses": {
+              "201": {
+                "description": "created",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "$ref": "#/components/schemas/Order"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/ws/offers/stream": {
+          "get": {
+            "summary": "Offers stream (WebSocket / SSE) - subscribe to real-time offers by geo/category",
+            "parameters": [
+              {
+                "in": "query",
+                "name": "lat",
+                "schema": {
+                  "type": "number"
+                }
+              },
+              {
+                "in": "query",
+                "name": "lng",
+                "schema": {
+                  "type": "number"
+                }
+              },
+              {
+                "in": "query",
+                "name": "categories",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "components": {
+        "schemas": {
+          "Vendor": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "kyc_status": {
+                "type": "string",
+                "enum": ["pending", "verified", "rejected"]
+              },
+              "rating": {
+                "type": "number",
+                "format": "float"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "VendorCreate": {
+            "type": "object",
+            "required": ["name", "contact_email"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "contact_email": {
+                "type": "string"
+              },
+              "phone": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "branches": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BranchCreate"
+                }
+              }
+            }
+          },
+          "VendorDetail": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Vendor"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "branches": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Branch"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "BranchCreate": {
+            "type": "object",
+            "required": ["address", "lat", "lng"],
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "lat": {
+                "type": "number",
+                "format": "double"
+              },
+              "lng": {
+                "type": "number"
+              },
+              "delivery_zones": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "Branch": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "lat": {
+                "type": "number",
+                "format": "double"
+              },
+              "lng": {
+                "type": "number"
+              },
+              "delivery_zones": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "Product": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "sku": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "category_id": {
+                "type": "string"
+              },
+              "vendor_id": {
+                "type": "string"
+              },
+              "images": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "base_price": {
+                "type": "number",
+                "format": "float"
+              },
+              "quality_score": {
+                "type": "number"
+              },
+              "attributes": {
+                "type": "object"
+              }
+            }
+          },
+          "ProductCreate": {
+            "type": "object",
+            "required": ["title", "vendor_id", "base_price"],
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "sku": {
+                "type": "string"
+              },
+              "category_id": {
+                "type": "string"
+              },
+              "vendor_id": {
+                "type": "string"
+              },
+              "images": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "base_price": {
+                "type": "number"
+              },
+              "attributes": {
+                "type": "object"
+              }
+            }
+          },
+          "ProductDetail": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Product"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "vendor": {
+                    "$ref": "#/components/schemas/Vendor"
+                  },
+                  "offers": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Offer"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "ProductSearchResponse": {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              },
+              "total": {
+                "type": "integer"
+              }
+            }
+          },
+          "Offer": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "vendor_id": {
+                "type": "string"
+              },
+              "vendor_name": {
+                "type": "string"
+              },
+              "product_id": {
+                "type": "string",
+                "nullable": true
+              },
+              "category_id": {
+                "type": "string",
+                "nullable": true
+              },
+              "discount_percent": {
+                "type": "number"
+              },
+              "price_override": {
+                "type": "number",
+                "nullable": true
+              },
+              "start_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "end_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "geo_filter": {
+                "type": "object",
+                "properties": {
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lng": {
+                    "type": "number"
+                  },
+                  "radius_meters": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "status": {
+                "type": "string",
+                "enum": ["draft", "scheduled", "live", "expired", "cancelled"]
+              }
+            }
+          },
+          "OfferCreate": {
+            "type": "object",
+            "required": ["vendor_id", "start_time", "end_time"],
+            "properties": {
+              "vendor_id": {
+                "type": "string"
+              },
+              "product_id": {
+                "type": "string"
+              },
+              "category_id": {
+                "type": "string"
+              },
+              "discount_percent": {
+                "type": "number"
+              },
+              "price_override": {
+                "type": "number"
+              },
+              "start_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "end_time": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "geo_filter": {
+                "type": "object",
+                "properties": {
+                  "lat": {
+                    "type": "number"
+                  },
+                  "lng": {
+                    "type": "number"
+                  },
+                  "radius_meters": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "OrderCreate": {
+            "type": "object",
+            "required": ["customer_id", "items", "delivery_lat", "delivery_lng", "payment_method"],
+            "properties": {
+              "customer_id": {
+                "type": "string"
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OrderItem"
+                }
+              },
+              "delivery_lat": {
+                "type": "number"
+              },
+              "delivery_lng": {
+                "type": "number"
+              },
+              "payment_method": {
+                "type": "string",
+                "enum": ["mpesa", "airtel", "card", "wallet"]
+              }
+            }
+          },
+          "OrderItem": {
+            "type": "object",
+            "required": ["product_id", "vendor_id", "quantity"],
+            "properties": {
+              "product_id": {
+                "type": "string"
+              },
+              "vendor_id": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "integer"
+              },
+              "price": {
+                "type": "number"
+              }
+            }
+          },
+          "Order": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "customer_id": {
+                "type": "string"
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/OrderItem"
+                }
+              },
+              "total": {
+                "type": "number"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["created", "confirmed", "paid", "picking", "in_transit", "delivered", "cancelled", "refunded"]
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    },
+    "language": "python",
+    "framework": "fastapi",
+    "database": "postgresql",
+    "task_type": "implementation"
+  }
+}

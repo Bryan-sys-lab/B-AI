@@ -1,0 +1,117 @@
+databases:
+  - name: b-postgres
+    databaseName: b_db
+    user: b_user
+    plan: free
+  - name: b-redis
+    plan: free
+
+services:
+  - type: web
+    name: b-orchestrator
+    env: docker
+    dockerfilePath: orchestrator/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        fromSecret: PORT
+      - key: DATABASE_URL
+        fromDatabase:
+          name: b-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromDatabase:
+          name: b-redis
+          property: connectionString
+    healthCheckPath: /health
+    autoDeploy: true
+  - type: web
+    name: b-agent-fix-implementation
+    env: docker
+    dockerfilePath: agents/fix_implementation/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        fromSecret: PORT
+    autoDeploy: true
+  - type: web
+    name: b-agent-feedback
+    env: docker
+    dockerfilePath: agents/feedback/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        fromSecret: PORT
+    autoDeploy: true
+  - type: web
+    name: b-agent-review
+    env: docker
+    dockerfilePath: agents/review/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        fromSecret: PORT
+    autoDeploy: true
+  - type: web
+    name: b-agent-security
+    env: docker
+    dockerfilePath: agents/security/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        fromSecret: PORT
+    autoDeploy: true
+  - type: web
+    name: b-agent-testing
+    env: docker
+    dockerfilePath: agents/testing/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        fromSecret: PORT
+    autoDeploy: true
+  - type: web
+    name: b-prompt-store
+    env: docker
+    dockerfilePath: prompt_store/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        fromSecret: PORT
+    autoDeploy: true
+  - type: web
+    name: b-transcript-store
+    env: docker
+    dockerfilePath: transcript_store/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        fromSecret: PORT
+    autoDeploy: true
+  - type: web
+    name: b-observability
+    env: docker
+    dockerfilePath: observability/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        fromSecret: PORT
+    autoDeploy: true
+  - type: web
+    name: b-sandbox-executor
+    env: docker
+    dockerfilePath: sandbox_executor/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        fromSecret: PORT
+    autoDeploy: true
+  - type: web
+    name: b-tool-api-gateway
+    env: docker
+    dockerfilePath: tool_api_gateway/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: PORT
+        fromSecret: PORT
+    autoDeploy: true

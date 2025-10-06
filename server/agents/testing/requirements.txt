@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pydantic
+requests
+python-dotenv
+pytest
+pytest-cov
+selenium
+locust
+webdriver-manager
+beautifulsoup4
+lxml
+coverage

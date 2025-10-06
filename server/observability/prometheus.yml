@@ -1,0 +1,43 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: "observability-service"
+    static_configs:
+      - targets: ["observability:8000"]
+
+  - job_name: "orchestrator"
+    static_configs:
+      - targets: ["orchestrator:8000"]
+
+  - job_name: "tool-api-gateway"
+    static_configs:
+      - targets: ["tool-api-gateway:8000"]
+
+  - job_name: "comparator-service"
+    static_configs:
+      - targets: ["comparator-service:8000"]
+
+  - job_name: "sandbox-executor"
+    static_configs:
+      - targets: ["sandbox-executor:8000"]
+
+  - job_name: "agents"
+    static_configs:
+      - targets:
+          - "agents-debugger:8000"
+          - "agents-feedback:8000"
+          - "agents-fix-implementation:8000"
+          - "agents-performance:8000"
+          - "agents-review:8000"
+          - "agents-security:8000"
+          - "agents-testing:8000"
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

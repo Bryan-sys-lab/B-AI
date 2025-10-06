@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+requests
+python-dotenv
+semgrep
+bandit
+checkov
+pre-commit
+# Note: ESLint and Prettier are Node.js tools, will be installed via npm in Dockerfile
+# Node.js and npm will be available in the container

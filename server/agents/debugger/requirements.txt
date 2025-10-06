@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+requests
+langchain
+transformers
+structlog
+python-dotenv
+pytest
